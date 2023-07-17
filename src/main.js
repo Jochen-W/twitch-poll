@@ -134,7 +134,7 @@ const username = urlParams.get('username');
 const token = urlParams.get('token');
 const isJvpeekmode = urlParams.has('jvpeekmode');
 
-const options = urlParams.get('options') ?? ['YES', 'NO'];
+const options = urlParams.get('options')?.split('|') ?? ['YES', 'NO'];
 const voteTime = urlParams.get('voteTime') ?? undefined;
 
 /** @type {Poll} */
