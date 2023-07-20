@@ -15,6 +15,31 @@
     </head>
 
     <body onload="window.scrollTo(0, 0);">
-        <div id="poll"></div>
+        <template id="voteBarTemplate">
+            <div class="voteBar">
+                <div id="voteNumberX" class="voteNumber">X</div>
+                <div class="voteBox">
+                    <div id="voteLineX" class="voteBoxLine"></div>
+                    <div class="voteBoxLabels">
+                        <div id="voteLabelX" class="voteLabel">label</div>
+                        <div id="votePercentageX" class="votePercentage">0.0%</div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <div class="container">
+            <div id="header">Hat dir der Clip gefallen?<br />Stimme jetzt ab!</div>
+            <div id="time" data-content="" data-animation-play-state="paused">0:00</div>
+            <div>time remaining</div>
+            <div class="line"></div>
+            <div id="poll"></div>
+            <div class="line"></div>
+            <div id="statistics">
+                <div><span id="votes">0</span><span>Votes</span></div>
+                <div><span id="average">0.0</span><span>Average</span></div>
+                <div><span id="median">0.0</span><span>Median</span></div>
+            </div>
+        </div>
     </body>
 </html>

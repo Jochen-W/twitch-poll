@@ -1,86 +1,9 @@
 import { Poll } from './poll.js';
 
+// TODO: re-add jvpeek-mode
+
 // defining constants
 const admins = ['jvpeek', 'souseiseki87'];
-
-/**
- * Creates all the DOM-Elements needed for the poll.
- * @param {Poll} poll the current poll
- */
-function createPollDOM(poll) {
-    const pollbox = document.getElementById('poll');
-    if (poll.average) {
-        //pollbox.innerHTML = poll.average.toFixed(2);
-    }
-
-    for (let i = 0; i < poll.options.length; i++) {
-        // label anlegen
-        const thisVoteBar = document.createElement('div');
-        thisVoteBar.classList.add('voteBar');
-        const thisVoteLabel = document.createElement('div');
-        thisVoteLabel.classList.add('voteLabel', 'label' + i);
-        thisVoteLabel.innerText = `${i + 1} - ${poll.options[i]}`;
-        thisVoteBar.appendChild(thisVoteLabel);
-        // balken anlegen
-        const thisVoteBox = document.createElement('div');
-        thisVoteBox.classList.add('voteBox', 'box' + i);
-
-        thisVoteBar.appendChild(thisVoteBox);
-        pollbox.appendChild(thisVoteBar);
-    }
-    const thisStatsBox = document.createElement('div');
-    thisStatsBox.classList.add('stats');
-    thisStatsBox.id = 'statsBox';
-
-    const thisStatsTime = document.createElement('div');
-    thisStatsTime.classList.add('stat', 'time');
-    thisStatsTime.id = 'statsTime';
-    thisStatsBox.appendChild(thisStatsTime);
-
-    const thisStatsVotes = document.createElement('div');
-    thisStatsVotes.classList.add('stat', 'votes');
-    thisStatsVotes.id = 'statsVotes';
-    thisStatsBox.appendChild(thisStatsVotes);
-
-    const thisStatsAVG = document.createElement('div');
-    thisStatsAVG.classList.add('stat', 'avg');
-    thisStatsAVG.id = 'statsAVG';
-    thisStatsBox.appendChild(thisStatsAVG);
-
-    pollbox.appendChild(thisStatsBox);
-}
-
-/**
- * Renders the poll in the DOM. Assumes that the createPollDOM was used before.
- * @param {Poll} poll the current poll
- * @param {Boolean} isJvpeekmode
- */
-function renderPoll(poll, isJvpeekmode = false) {
-    for (let i = 0; i < poll.options.length; i++) {
-        const thisVoteBox = document.querySelector(`.box${i}`);
-        const width = poll.results[i] / (poll.maxVoted || 1);
-        if (isJvpeekmode) {
-            thisVoteBox.classList.add('peekmode');
-        } else {
-            thisVoteBox.classList.remove('peekmode');
-        }
-        if (poll.results[i] === poll.maxVoted) {
-            thisVoteBox.classList.add('winning');
-        } else {
-            thisVoteBox.classList.remove('winning');
-        }
-        thisVoteBox.style.width = `${width * 100}%`;
-    }
-
-    document.getElementById('statsVotes').innerText = `Votes: ${poll.votes.size}`;
-    document.getElementById('statsAVG').innerHTML = `Average: ${poll.average.toFixed(
-        2
-    )}<br />Median: ${poll.median.toFixed(2)}`;
-
-    if (isJvpeekmode) {
-        document.getElementById('statsAVG').innerHTML = 'JvPeek always wins';
-    }
-}
 
 /**
  * Handles commands an votes.
@@ -97,14 +20,14 @@ function handleMessage(msg, poll) {
     // commands
     if (msg.message.startsWith('!')) {
         if (isAdmin) {
-            if (msg.message.startsWith('!peek')) {
-                jvpeekmode = 1;
-            }
-            if (msg.message.startsWith('!poke')) {
-                jvpeekmode = 0;
-            }
-
             //mod commands go here
+            // TODO: add commands to create, and start a poll via the chat
+            // if (msg.message.startsWith('!peek')) {
+            //     jvpeekmode = 1;
+            // }
+            // if (msg.message.startsWith('!poke')) {
+            //     jvpeekmode = 0;
+            // }
         }
 
         //other commands go here.
@@ -115,13 +38,10 @@ function handleMessage(msg, poll) {
     // go through all matches until we find a valid one (-> break after first valid match)
     for (const match of matches) {
         const asFloat = parseFloat(match[0].replace(',', '.'));
-        const asVote = Math.round(asFloat);
-        if (1 <= asVote && asVote <= poll.options.length) {
-            return poll.addVote(msg.username, {
-                value: asFloat,
-                color: msg.tags.color || '#FF00FF',
-            });
-        }
+        return poll.addVote(msg.username, {
+            value: asFloat,
+            color: msg.tags.color || '#FF00FF',
+        });
     }
     return false;
 }
@@ -132,15 +52,9 @@ const urlParams = new URLSearchParams(queryString);
 const channel = urlParams.get('channel');
 const username = urlParams.get('username');
 const token = urlParams.get('token');
-const isJvpeekmode = urlParams.has('jvpeekmode');
-
-const options = urlParams.get('options')?.split('|') ?? ['YES', 'NO'];
-const voteTime = urlParams.get('voteTime') ?? undefined;
 
 /** @type {Poll} */
-const currentPoll = new Poll(options, voteTime);
-createPollDOM(currentPoll);
-renderPoll(currentPoll);
+const currentPoll = new Poll('Hat dir der Clip gefallen?\nStimme jetzt ab!', ['YES', 'NO', 'MAYBE'], 30_000, 0, 0.5);
 
 // main
 (async () => {
@@ -155,19 +69,38 @@ renderPoll(currentPoll);
     chat.on('*', (message) => {
         const isVote = handleMessage(message, currentPoll);
         if (isVote) {
-            renderPoll(currentPoll, isJvpeekmode);
+            currentPoll.rerender();
         }
     });
 
     await chat.connect();
-    // await chat.join(channel);
-
+    if (channel) {
+        await chat.join(channel);
+    }
     currentPoll.start();
     // chatobj.say(channel, 'Start your votes!');
     console.log('Start your votes!');
 
+    // Test:
+    // /*
     setTimeout(() => {
-        // chatobj.say(channel, 'Vote end!');
-        console.log('Vote end!');
-    }, currentPoll.getRemainingTime());
+        currentPoll.addVote('a', { value: 0, color: '#FF00FF' });
+        currentPoll.addVote('b', { value: 0.5, color: '#FF00FF' });
+        currentPoll.addVote('c', { value: 1, color: '#FF00FF' });
+        currentPoll.addVote('d', { value: -1, color: '#FF00FF' });
+        currentPoll.addVote('e', { value: 0.1, color: '#FF00FF' });
+        currentPoll.addVote('f', { value: 0.25, color: '#FF00FF' });
+        currentPoll.addVote('g', { value: 1.01, color: '#FF00FF' });
+        currentPoll.addVote('g', { value: 0.24999999, color: '#FF00FF' });
+        setTimeout(() => {
+            currentPoll.rerender();
+            setTimeout(() => {
+                const newPoll = new Poll('TEST TEST TEST', [':)', ':('], 10_000, 1, 1);
+                setTimeout(() => {
+                    newPoll.start();
+                }, 2000);
+            }, 5000);
+        }, 1000);
+    }, 1000);
+    // */
 })();

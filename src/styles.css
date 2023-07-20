@@ -8,24 +8,182 @@
 
 body,
 html {
-    /* font-family: "Comic Sans MS"; */
-    font-family: 'Nunito', sans-serif;
-
-    font-size: 14px;
-    margin: 0px;
-    padding: 0px;
     background: #222;
     color: white;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+
+    /* font-family: "Comic Sans MS"; */
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+
+    --voteBarHeight: 40px;
 }
 
 body {
     padding: 10px;
 }
 
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.line {
+    width: 100%;
+    height: 4px;
+    margin: 16px;
+    background-color: rgba(168, 168, 168, 0.8);
+    border-radius: 2px;
+}
+
+#header {
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+}
+
+#time {
+    position: relative;
+    width: 100%;
+    text-align: center;
+    padding-top: 8px;
+    font-size: 22px;
+}
+#time::before {
+    content: attr(data-content);
+    position: absolute;
+    animation: my_rotate 1s ease-in-out infinite;
+}
+#time::after {
+    content: attr(data-content);
+    position: absolute;
+    animation: my_rotate2 1s ease-in-out infinite;
+}
+.removeAnimation::before {
+    animation: none !important;
+    transform: translateX(calc(-100% - 8px));
+}
+.removeAnimation::after {
+    animation: none !important;
+    transform: translateX(8px);
+}
+
+#statistics {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+#statistics > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#votes,
+#average,
+#median {
+    font-size: 22px;
+    padding-bottom: 4px;
+}
+
 #poll {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    /* height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: space-evenly;
+    align-items: left;
+    align-content: center; */
+}
+
+.voteBar {
+    width: 100%;
+    height: var(--voteBarHeight);
+    margin: 2px 0px 2px 0px;
+    display: flex;
+    flex-direction: row;
+}
+
+.voteNumber {
+    height: 100%;
+    width: 24px;
+    padding-right: 16px;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+.voteBox {
+    height: 100%;
+    width: calc(100% - 24px);
+    flex-grow: 2;
+    position: relative;
+}
+.voteBoxLine {
+    background: #9246ff;
+    border-radius: 2px;
+    position: absolute;
+    height: 100%;
+    z-index: 1;
+    transition: width 0.3s ease-in-out;
+}
+
+.winning {
+    background: #ffd700;
+}
+
+.voteBoxLabels {
+    z-index: 2;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.voteLabel {
+    height: 100%;
+    text-align: start;
+    padding-left: 16px;
+    padding-right: 16px;
+    display: flex;
+    align-items: center;
+}
+.votePercentage {
+    height: 100%;
+    text-align: end;
+    padding-right: 16px;
+    display: flex;
+    align-items: center;
+}
+
+@keyframes my_rotate {
+    0% {
+        transform: translateX(calc(-100% - 8px)) rotate(0deg);
+    }
+    100% {
+        transform: translateX(calc(-100% - 8px)) rotate(360deg);
+    }
+}
+@keyframes my_rotate2 {
+    0% {
+        transform: translateX(8px) rotate(0deg);
+    }
+    100% {
+        transform: translateX(8px) rotate(360deg);
+    }
+}
+
+/* ----------------------------------- */
+/* #poll {
     width: calc(100% - 20px);
     height: 100%;
     display: flex;
@@ -98,3 +256,4 @@ body {
         background-position: 200% 0%;
     }
 }
+*/
