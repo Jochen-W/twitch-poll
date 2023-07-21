@@ -1,7 +1,5 @@
 import { Poll } from './poll.js';
 
-// TODO: re-add jvpeek-mode
-
 // defining constants
 const admins = ['jvpeek', 'souseiseki87'];
 
@@ -22,12 +20,12 @@ function handleMessage(msg, poll) {
         if (isAdmin) {
             //mod commands go here
             // TODO: add commands to create, and start a poll via the chat
-            // if (msg.message.startsWith('!peek')) {
-            //     jvpeekmode = 1;
-            // }
-            // if (msg.message.startsWith('!poke')) {
-            //     jvpeekmode = 0;
-            // }
+            if (msg.message.startsWith('!peek')) {
+                poll.jvpeekmode = true;
+            }
+            if (msg.message.startsWith('!poke')) {
+                poll.jvpeekmode = false;
+            }
         }
 
         //other commands go here.
@@ -96,8 +94,13 @@ const currentPoll = new Poll('Hat dir der Clip gefallen?\nStimme jetzt ab!', ['Y
             currentPoll.rerender();
             setTimeout(() => {
                 const newPoll = new Poll('TEST TEST TEST', [':)', ':('], 10_000, 1, 1);
+                newPoll.jvpeekmode = true;
                 setTimeout(() => {
                     newPoll.start();
+                    newPoll.addVote('a', { value: 1, color: '#FF00FF' });
+                    newPoll.addVote('b', { value: 1, color: '#FF00FF' });
+                    newPoll.addVote('c', { value: 2, color: '#FF00FF' });
+                    newPoll.rerender();
                 }, 2000);
             }, 5000);
         }, 1000);

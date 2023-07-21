@@ -24,6 +24,7 @@ export class Poll {
         this.voteTime = voteTime;
         this.min = min;
         this.step = step;
+        this.jvpeekmode = false;
 
         this.votes = new Map();
         this.results = Array.from({ length: options.length }).fill(0);
@@ -168,8 +169,14 @@ export class Poll {
 
     rerender() {
         document.getElementById('votes').innerText = this.votes.size;
-        document.getElementById('average').innerText = this.average.toFixed(2);
-        document.getElementById('median').innerText = this.median.toFixed(2);
+        document.getElementById('median').innerText = this.jvpeekmode ? '-' : this.median.toFixed(2);
+        const avgSpan = document.getElementById('average');
+        avgSpan.innerText = this.jvpeekmode ? 'JvPeek always wins' : this.average.toFixed(2);
+        if (this.jvpeekmode) {
+            avgSpan.classList.add('peekmode');
+        } else {
+            avgSpan.classList.remove('peekmode');
+        }
 
         for (let i = 0; i < this.options.length; i++) {
             const width = this.results[i] / (this.maxVoted || 1);
@@ -177,13 +184,24 @@ export class Poll {
 
             const line = document.getElementById(`voteLine${i}`);
             line.style.width = `${width * 100}%`;
+            const textLabel = document.getElementById(`voteLabel${i}`);
             const percentageLabel = document.getElementById(`votePercentage${i}`);
             percentageLabel.innerText = `${(percentage * 100).toFixed(2)}%`;
 
+            if (this.jvpeekmode) {
+                line.classList.add('peekmode');
+            } else {
+                line.classList.remove('peekmode');
+            }
+
             if (this.results[i] === this.maxVoted) {
                 line.classList.add('winning');
+                textLabel.classList.add('winning');
+                percentageLabel.classList.add('winning');
             } else {
                 line.classList.remove('winning');
+                textLabel.classList.remove('winning');
+                percentageLabel.classList.remove('winning');
             }
         }
     }
