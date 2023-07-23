@@ -32,14 +32,18 @@ function handleMessage(msg, poll) {
     }
 
     // other messages (possibly a vote-message)
-    const matches = msg.message.matchAll(/(?<=^|\s)(((?<![,.])\d+([,.]\d*)?)|([,.]\d+))(?=$|\s)/g);
+    // matches all numbers that are not inside a word (i.e. whitespace or nothing left and right)
+    const matches = msg.message.matchAll(/(?<=^|\s)-?(((?<![,.])\d+([,.]\d*)?)|([,.]\d+))(?=$|\s)/g);
     // go through all matches until we find a valid one (-> break after first valid match)
     for (const match of matches) {
         const asFloat = parseFloat(match[0].replace(',', '.'));
-        return poll.addVote(msg.username, {
+        const valid = poll.addVote(msg.username, {
             value: asFloat,
             color: msg.tags.color || '#FF00FF',
         });
+        if (valid) {
+            return true;
+        }
     }
     return false;
 }
