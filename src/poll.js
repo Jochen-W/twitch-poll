@@ -71,21 +71,20 @@ export class Poll {
     start() {
         this.startTime = Date.now();
         const timeDiv = document.getElementById('time');
+        const timeCircle = document.getElementById('circle');
         const intervalID = setInterval(() => {
             if (timeDiv.getAttribute('activeIntervalID') == intervalID) {
-                timeDiv.innerText = durationAsString(this.getRemainingTime());
+                const remainingTime = this.getRemainingTime();
+                timeDiv.innerText = durationAsString(Math.ceil(remainingTime / 1000) * 1000);
+                timeCircle.style.setProperty('--percent', remainingTime / this.voteTime);
             } else {
                 clearInterval(intervalID);
             }
         }, 200);
         timeDiv.setAttribute('activeIntervalID', intervalID);
-        timeDiv.setAttribute('data-content', '⏳');
-        timeDiv.classList.remove('removeAnimation');
         setTimeout(() => {
             if (timeDiv.getAttribute('activeIntervalID') == intervalID) {
                 clearInterval(intervalID);
-                timeDiv.setAttribute('data-content', '🛑');
-                timeDiv.classList.add('removeAnimation');
             }
         }, this.voteTime);
     }
@@ -146,8 +145,7 @@ export class Poll {
         const timeDiv = document.getElementById('time');
         timeDiv.setAttribute('activeIntervalID', -1); // remove last interval
         timeDiv.innerText = durationAsString(this.getRemainingTime());
-        timeDiv.setAttribute('data-content', '⏸️');
-        timeDiv.classList.add('removeAnimation');
+        document.getElementById('circle').style.setProperty('--percent', 1);
         // and or change to new states
         document.getElementById('header').innerHTML = this.title.replace('\n', '<br>');
 

@@ -30,9 +30,17 @@
 
         <div class="container">
             <div id="header">Hat dir der Clip gefallen?<br />Stimme jetzt ab!</div>
-            <div id="time" data-content="" data-animation-play-state="paused">0:00</div>
-            <div>time remaining</div>
-            <div class="line"></div>
+            <div class="timerContainer">
+                <div class="line"></div>
+                <div class="timerBox">
+                    <div id="time">0:00</div>
+                    <svg id="timerCircleSvg">
+                        <circle class="timerCircle timerCircleBtm"></circle>
+                        <circle id="circle" class="timerCircle timerCircleTop"></circle>
+                    </svg>
+                </div>
+                <div class="line"></div>
+            </div>
             <div id="poll"></div>
             <div class="line"></div>
             <div id="statistics">
