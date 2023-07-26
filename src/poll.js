@@ -5,9 +5,10 @@
  */
 
 function durationAsString(duration) {
+    const deciSecond = Math.floor((duration / 100) % 10);
     const seconds = Math.floor((duration / 1000) % 60);
     const minutes = Math.floor((duration / (60 * 1000)) % 60);
-    return minutes + ':' + seconds.toString().padStart(2, '0');
+    return `${minutes}:${seconds.toString().padStart(2, '0')}.${deciSecond}`;
 }
 
 export class Poll {
@@ -71,16 +72,23 @@ export class Poll {
     start() {
         this.startTime = Date.now();
         const timeDiv = document.getElementById('time');
+        timeDiv.style.opacity = 1.0;
         const timeCircle = document.getElementById('circle');
         const intervalID = setInterval(() => {
             if (timeDiv.getAttribute('activeIntervalID') == intervalID) {
                 const remainingTime = this.getRemainingTime();
-                timeDiv.innerText = durationAsString(Math.ceil(remainingTime / 1000) * 1000);
-                timeCircle.style.setProperty('--percent', remainingTime / this.voteTime);
+                timeDiv.innerText = remainingTime === 0 ? 'Ende' : durationAsString(remainingTime);
+                const percentage = remainingTime / this.voteTime;
+                timeCircle.style.setProperty('--percent', percentage);
+                if (remainingTime !== 0 && (percentage < 0.1 || (remainingTime < 10_000 && percentage < 0.5))) {
+                    timeDiv.classList.add('critical');
+                } else {
+                    timeDiv.classList.remove('critical');
+                }
             } else {
                 clearInterval(intervalID);
             }
-        }, 200);
+        }, 100);
         timeDiv.setAttribute('activeIntervalID', intervalID);
         setTimeout(() => {
             if (timeDiv.getAttribute('activeIntervalID') == intervalID) {
@@ -145,7 +153,8 @@ export class Poll {
         const timeDiv = document.getElementById('time');
         timeDiv.setAttribute('activeIntervalID', -1); // remove last interval
         timeDiv.innerText = durationAsString(this.getRemainingTime());
-        document.getElementById('circle').style.setProperty('--percent', 1);
+        timeDiv.style.opacity = 0.5;
+        document.getElementById('circle').style.setProperty('--percent', 0);
         // and or change to new states
         document.getElementById('header').innerHTML = this.title.replace('\n', '<br>');
 

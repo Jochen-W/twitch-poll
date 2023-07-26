@@ -105,7 +105,7 @@ html {
     stroke: rgba(var(--red), var(--green), 0, 1);
     stroke-dashoffset: 0;
     stroke-dasharray: calc(2 * pi * (0.5 * var(--timer-size) - 10px) * var(--percent)) 999;
-    transition: stroke-dasharray 0.2s linear;
+    transition: stroke-dasharray 0.1s linear;
 }
 
 .timerCircleBtm {
@@ -177,6 +177,12 @@ html {
     background: #ffd700;
     color: black;
     font-weight: bold;
+}
+
+.critical {
+    color: #ff0000;
+    font-weight: bold;
+    font-size: 3em;
 }
 
 .voteBoxLabels {
@@ -273,79 +279,3 @@ html {
         transform: translateX(8px) rotate(360deg);
     }
 }
-
-/* ----------------------------------- */
-/* #poll {
-    width: calc(100% - 20px);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    justify-content: space-evenly;
-    align-items: left;
-    align-content: center;
-}
-
-.voteBox {
-    background: #9246ff;
-    height: 5px;
-    transition: all ease-in-out 1s;
-}
-
-.voteLabel {
-    height: 100%;
-}
-
-.stats {
-    height: 120px;
-
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: space-evenly;
-    align-items: center;
-    align-content: center;
-}
-
-.stat {
-    width: 100%;
-    margin: 0 10px;
-    max-height: 50px;
-    padding: 5px;
-    text-align: center;
-    border-bottom: 3px solid #555;
-    aspect-ratio: 1/1;
-    float: left;
-}
-
-.winning {
-    background: #ffd700;
-}
-
-.peekmode.winning {
-    background: linear-gradient(
-        to right,
-        #ff0000,
-        #ff00b3,
-        #7e57c2,
-        #2196f3,
-        #26c6da,
-        #00ff0d,
-        #eeff41,
-        #ff9d00,
-        #ff5722
-    );
-    animation: Animation 1s linear infinite;
-    background-size: 200% 100%;
-}
-
-@keyframes Animation {
-    0% {
-        background-position: 0% 0%;
-    }
-
-    100% {
-        background-position: 200% 0%;
-    }
-}
-*/
