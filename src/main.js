@@ -308,5 +308,14 @@ currentPoll.rerender();
         },
         currentPoll
     );
+    console.log('New poll');
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message:
+                '!poll options="never|trust|user|input" header="HACKER-MAN <script> alert(\'you got hacked!\'); </script>" time="5000" min="0" step="10" max="70"',
+        },
+        currentPoll
+    );
     */
 })();
