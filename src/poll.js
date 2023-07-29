@@ -128,7 +128,7 @@ export class Poll {
      * @returns {Boolean} wether the vote was allowed (in time and allowed value).
      */
     addVote(username, vote) {
-        if (this.getRemainingTime() <= 0) {
+        if (this.getRemainingTime() <= 0 || !this.startTime) {
             return false;
         }
         if (!this.isVoteValueValid(vote.value)) {
@@ -156,7 +156,7 @@ export class Poll {
         timeDiv.style.opacity = 0.5;
         document.getElementById('circle').style.setProperty('--percent', 0);
         // and or change to new states
-        document.getElementById('header').innerHTML = this.title.replace('\n', '<br>');
+        document.getElementById('header').innerHTML = this.title.replaceAll('\n', '<br>');
 
         for (let i = 0; i < this.options.length; i++) {
             const bar = barTemplate.content.cloneNode(true);

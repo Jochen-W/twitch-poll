@@ -28,7 +28,7 @@
             </div>
         </template>
 
-        <div class="container">
+        <div id="container" class="container">
             <div id="header">Hat dir der Clip gefallen?<br />Stimme jetzt ab!</div>
             <div class="timerContainer">
                 <div class="line"></div>
@@ -48,6 +48,11 @@
                 <div><span id="average">0.0</span><span>Average</span></div>
                 <div><span id="median">0.0</span><span>Median</span></div>
             </div>
+        </div>
+        <div id="error" class="container hide">
+            <span>Missing channel-parameter in URL!</span><br />
+            <span>Please add a parameter to your URL like that:</span>
+            <span id="url"></span>
         </div>
     </body>
 </html>

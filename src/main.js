@@ -7,10 +7,10 @@ const admins = ['jvpeek', 'souseiseki87'];
  * Handles commands an votes.
  * @param msg - the twitch message
  * @param {Poll} poll - the current poll
- * @returns {Boolean} wether the message was a vote
+ * @returns {Poll} either the current poll (if the message doesn't create a new one) or a new poll
  */
 function handleMessage(msg, poll) {
-    if (msg.event != 'PRIVMSG') return;
+    if (msg.event != 'PRIVMSG') return poll;
 
     const isAdmin =
         msg.tags.isModerator === true || msg.tags.badges.broadcaster === true || admins.includes(msg.username);
@@ -22,9 +22,39 @@ function handleMessage(msg, poll) {
             // TODO: add commands to create, and start a poll via the chat
             if (msg.message.startsWith('!peek')) {
                 poll.jvpeekmode = true;
+                currentPoll.rerender();
+                return currentPoll;
             }
             if (msg.message.startsWith('!poke')) {
                 poll.jvpeekmode = false;
+                currentPoll.rerender();
+                return currentPoll;
+            }
+
+            if (msg.message.startsWith('!poll')) {
+                const header = msg.message.match(/(?<=header=")[^"]*(?=")/);
+                const options = msg.message.match(/(?<=options=")[^"]*(?=")/);
+
+                if (!header || !options) {
+                    return currentPoll;
+                }
+
+                const time = msg.message.match(/(?<=time=")[^"]*(?=")/);
+                const min = msg.message.match(/(?<=min=")[^"]*(?=")/);
+                const step = msg.message.match(/(?<=step=")[^"]*(?=")/);
+
+                return new Poll(
+                    header[0],
+                    options[0].split('|'),
+                    parseInt(time ?? '30000'),
+                    parseInt(min ?? '1'),
+                    parseInt(step ?? '1')
+                );
+            }
+
+            if (msg.message.startsWith('!startpoll')) {
+                poll.start();
+                return currentPoll;
             }
         }
 
@@ -42,72 +72,241 @@ function handleMessage(msg, poll) {
             color: msg.tags.color || '#FF00FF',
         });
         if (valid) {
-            return true;
+            currentPoll.rerender();
+            return currentPoll;
         }
     }
-    return false;
+
+    return currentPoll;
 }
 
 // parse url params
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
+// required
 const channel = urlParams.get('channel');
-const username = urlParams.get('username');
+if (!channel) {
+    document.getElementById('container').classList.add('hide');
+    document.getElementById('error').classList.remove('hide');
+    document.getElementById('url').innerText = `${window.location}${
+        window.location.toString().includes('?') ? '&' : '?'
+    }channel=your_channel`;
+    throw Error('Missing channel-parameter in URL');
+}
+// optional
 const token = urlParams.get('token');
+const username = urlParams.get('username');
 
 /** @type {Poll} */
-const currentPoll = new Poll('Hat dir der Clip gefallen?\nStimme jetzt ab!', ['YES', 'NO', 'MAYBE'], 30_000, 0, 0.5);
+let currentPoll = new Poll( // showcase poll
+    'Use the command\n' +
+        '`!poll header="&lt;header&gt;" options="&lt;option1|option2|...&gt;" time="&lt;voteTimeInMs&gt;" min="&lt;min&gt;" step="&lt;step&gt;"`\n' +
+        'to create a poll!\n\n' +
+        'Example: `!poll header="Hat dir der Clip gefallen?\\nStimme jetzt ab!" options="YES|NO" time="30000"`',
+    [
+        'header     - is the text above, use `\\n` for line-breaks',
+        'options    - are all options to vote for, separated by `|`',
+        'time       - optional, is the time to vote in milliseconds, defaults to 30000ms',
+        'min        - optional, smallest allowed number, defaults to 1',
+        'step       - optional, increment between two options, defaults to 1',
+        'further commands:',
+        '`!startpoll` - used to start the current poll',
+    ]
+);
+currentPoll.start();
+for (let i = 0; i <= 7; i++) {
+    currentPoll.addVote(`1-${i}`, { value: 1 });
+}
+for (let i = 0; i <= 7; i++) {
+    currentPoll.addVote(`2-${i}`, { value: 2 });
+}
+for (let i = 0; i <= 10; i++) {
+    currentPoll.addVote(`3-${i}`, { value: 3 });
+}
+for (let i = 0; i <= 8; i++) {
+    currentPoll.addVote(`4-${i}`, { value: 4 });
+}
+for (let i = 0; i <= 9; i++) {
+    currentPoll.addVote(`5-${i}`, { value: 5 });
+}
+for (let i = 0; i <= 20; i++) {
+    currentPoll.addVote(`6-${i}`, { value: 6 });
+}
+for (let i = 0; i <= 6; i++) {
+    currentPoll.addVote(`7-${i}`, { value: 7 });
+}
+currentPoll.rerender();
 
 // main
 (async () => {
     const { Chat } = window.TwitchJs;
-
-    const chat = new Chat({
-        token: token ?? undefined,
-        username: username ?? undefined,
+    let initObj = {
         log: { level: 'warn' },
-    });
+    };
+    if (token && username) {
+        initObj = {
+            ...initObj,
+            token,
+            username,
+        };
+    }
+    const chat = new Chat(initObj);
 
     chat.on('*', (message) => {
-        const isVote = handleMessage(message, currentPoll);
-        if (isVote) {
-            currentPoll.rerender();
-        }
+        currentPoll = handleMessage(message, currentPoll);
     });
 
     await chat.connect();
-    if (channel) {
-        await chat.join(channel);
-    }
-    currentPoll.start();
-    // chatobj.say(channel, 'Start your votes!');
-    console.log('Start your votes!');
+    await chat.join(channel);
+    // use this to write something into the chat; only works with username and token
+    // chat.say(channel, 'What you wan't the bot to say');
 
     // Test:
-    // /*
-    setTimeout(() => {
-        currentPoll.addVote('a', { value: 0, color: '#FF00FF' });
-        currentPoll.addVote('b', { value: 0.5, color: '#FF00FF' });
-        currentPoll.addVote('c', { value: 1, color: '#FF00FF' });
-        currentPoll.addVote('d', { value: -1, color: '#FF00FF' });
-        currentPoll.addVote('e', { value: 0.1, color: '#FF00FF' });
-        currentPoll.addVote('f', { value: 0.25, color: '#FF00FF' });
-        currentPoll.addVote('g', { value: 1.01, color: '#FF00FF' });
-        currentPoll.addVote('g', { value: 0.24999999, color: '#FF00FF' });
-        setTimeout(() => {
-            currentPoll.rerender();
-            setTimeout(() => {
-                const newPoll = new Poll('TEST TEST TEST', [':)', ':('], 10_000, 1, 1);
-                newPoll.jvpeekmode = true;
-                setTimeout(() => {
-                    newPoll.start();
-                    newPoll.addVote('a', { value: 1, color: '#FF00FF' });
-                    newPoll.addVote('b', { value: 1, color: '#FF00FF' });
-                    newPoll.addVote('c', { value: 2, color: '#FF00FF' });
-                    newPoll.rerender();
-                }, 2000);
-            }, 5000);
-        }, 1000);
-    }, 1000);
-    // */
+    /*
+    const msgTemplate = {
+        event: 'PRIVMSG',
+        tags: {
+            isModerator: true,
+            badges: {
+                broadcaster: true,
+            },
+            color: '#FF00FF',
+        },
+        username: 'user',
+        message: 'msg',
+    };
+    function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    // check if nothing happens when not started
+    console.log('Not allowed vote');
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message: '1',
+        },
+        currentPoll
+    );
+    await sleep(1_000);
+    // try create new
+    console.log('Wrong new poll');
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message: '!poll header="NICE HEADER" time="0"',
+        },
+        currentPoll
+    );
+    await sleep(1_000);
+    // create new
+    console.log('New poll');
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message: '!poll options="1|2|3|TEST" header="NICE HEADER"',
+        },
+        currentPoll
+    );
+    await sleep(1_000);
+    // start current
+    console.log('Start poll');
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message: '!startpoll',
+        },
+        currentPoll
+    );
+    await sleep(1_000);
+    console.log('Votes...');
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message: '3',
+            username: 'user1',
+        },
+        currentPoll
+    );
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message: 'ich nehm auch 3, du hund',
+            username: 'user2',
+        },
+        currentPoll
+    );
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message: '2 für mich',
+            username: 'user3',
+        },
+        currentPoll
+    );
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message: 'ich bin dumm und nehme die 0, -0 oder vlt doch die 4xD !!!!1!',
+            username: 'dumbUser',
+        },
+        currentPoll
+    );
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message: '1.01',
+            username: 'user4',
+        },
+        currentPoll
+    );
+    await sleep(2_000);
+    console.log('PEEKMODE');
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message: '!peek',
+        },
+        currentPoll
+    );
+    await sleep(5_000);
+    console.log('poke :(');
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message: '!poke',
+        },
+        currentPoll
+    );
+    await sleep(3_000);
+    // overwrite
+    console.log('New poll');
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message:
+                '!poll options="1,2,3|4|4|5|x|y" header="NEW HEADER\nLINE BREAK" time="5000" min="0" step="10" max="70"',
+        },
+        currentPoll
+    );
+    await sleep(2_000);
+    console.log('Start poll');
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message: '!startpoll',
+        },
+        currentPoll
+    );
+    await sleep(6_000);
+    console.log('Out of time vote');
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
+            message: '3',
+            username: 'user1',
+        },
+        currentPoll
+    );
+    */
 })();
