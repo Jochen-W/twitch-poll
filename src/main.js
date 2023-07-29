@@ -22,13 +22,13 @@ function handleMessage(msg, poll) {
             // TODO: add commands to create, and start a poll via the chat
             if (msg.message.startsWith('!peek')) {
                 poll.jvpeekmode = true;
-                currentPoll.rerender();
-                return currentPoll;
+                poll.rerender();
+                return poll;
             }
             if (msg.message.startsWith('!poke')) {
                 poll.jvpeekmode = false;
-                currentPoll.rerender();
-                return currentPoll;
+                poll.rerender();
+                return poll;
             }
 
             if (msg.message.startsWith('!poll')) {
@@ -36,7 +36,7 @@ function handleMessage(msg, poll) {
                 const options = msg.message.match(/(?<=options=")[^"]*(?=")/);
 
                 if (!header || !options) {
-                    return currentPoll;
+                    return poll;
                 }
 
                 const time = msg.message.match(/(?<=time=")[^"]*(?=")/);
@@ -54,7 +54,13 @@ function handleMessage(msg, poll) {
 
             if (msg.message.startsWith('!startpoll')) {
                 poll.start();
-                return currentPoll;
+                return poll;
+            }
+
+            if (msg.message.startsWith('!restartpoll')) {
+                const newPoll = new Poll(poll.title, poll.options, poll.voteTime, poll.min, poll.step);
+                newPoll.start();
+                return newPoll;
             }
         }
 
@@ -72,12 +78,12 @@ function handleMessage(msg, poll) {
             color: msg.tags.color || '#FF00FF',
         });
         if (valid) {
-            currentPoll.rerender();
-            return currentPoll;
+            poll.rerender();
+            return poll;
         }
     }
 
-    return currentPoll;
+    return poll;
 }
 
 // parse url params
@@ -111,6 +117,7 @@ let currentPoll = new Poll( // showcase poll
         'step       - optional, increment between two options, defaults to 1',
         'further commands:',
         '`!startpoll` - used to start the current poll',
+        '`!restartpoll` - used to restart the current poll',
     ]
 );
 currentPoll.start();
@@ -132,8 +139,11 @@ for (let i = 0; i <= 9; i++) {
 for (let i = 0; i <= 20; i++) {
     currentPoll.addVote(`6-${i}`, { value: 6 });
 }
-for (let i = 0; i <= 6; i++) {
+for (let i = 0; i <= 2; i++) {
     currentPoll.addVote(`7-${i}`, { value: 7 });
+}
+for (let i = 0; i <= 3; i++) {
+    currentPoll.addVote(`8-${i}`, { value: 8 });
 }
 currentPoll.rerender();
 
@@ -162,7 +172,7 @@ currentPoll.rerender();
     // chat.say(channel, 'What you wan't the bot to say');
 
     // Test:
-    /*
+    // /*
     const msgTemplate = {
         event: 'PRIVMSG',
         tags: {
@@ -312,10 +322,19 @@ currentPoll.rerender();
     currentPoll = handleMessage(
         {
             ...msgTemplate,
+            message: '!restartpoll',
+        },
+        currentPoll
+    );
+    await sleep(3_000);
+    console.log('New poll');
+    currentPoll = handleMessage(
+        {
+            ...msgTemplate,
             message:
                 '!poll options="never|trust|user|input" header="HACKER-MAN <script> alert(\'you got hacked!\'); </script>" time="5000" min="0" step="10" max="70"',
         },
         currentPoll
     );
-    */
+    // */
 })();
