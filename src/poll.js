@@ -11,6 +11,11 @@ function durationAsString(duration) {
     return `${minutes}:${seconds.toString().padStart(2, '0')}.${deciSecond}`;
 }
 
+function escape(htmlStr) {
+    // escapes `<`, `>` and `&`
+    return htmlStr.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 export class Poll {
     /**
      * @param {String} title title of the poll
@@ -20,7 +25,7 @@ export class Poll {
      * @param {number} step number distance between two numbers
      */
     constructor(title, options, voteTime = 30_000, min = 1, step = 1) {
-        this.title = title;
+        this.title = escape(title);
         this.options = options;
         this.voteTime = voteTime;
         this.min = min;
